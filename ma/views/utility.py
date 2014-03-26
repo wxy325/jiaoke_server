@@ -7,3 +7,6 @@ def responseError(errorCode):
 
 def responseJson(dict):
     return HttpResponse(json.dumps(dict,ensure_ascii=False))
+
+def responseSuccess():
+    return responseJson({"result":True})

@@ -6,6 +6,7 @@ from ma.models import UserSession
 from django.views.decorators.csrf import csrf_exempt, csrf_protect
 from utility import responseError
 from utility import responseJson
+from utility import responseSuccess
 import random
 
 
@@ -78,12 +79,16 @@ def userLogin(request):
 def userLogout(request):
     if request.method == 'POST':
         try:
-            sessionId = request['session_id']
+            sessionId = request.POST['session_id']
         except KeyError:
             return responseError(1001)
 
-
-
+        try:
+            session = UserSession.objects.get(id = sessionId)
+            session.delete()
+        except UserSession.DoesNotExist:
+            pass
+        return responseSuccess()
     else:
         return responseError(1000)
 
@@ -91,5 +96,20 @@ def userLogout(request):
 
 @csrf_exempt
 def userGetInfo(request):
+    if request.method == 'POST':
+        try:
+            sessionId = request.POST['session_id']
+        except KeyError:
+            return responseError(1001)
 
-    return HttpResponse("Hello World")
+        try:
+            session = UserSession.objects.get(id = sessionId)
+            if not session.checkSessionValid():
+                return responseError(1005)
+        except UserSession.DoesNotExist:
+            return responseError(1005)
+        user = session.user
+        userDict = {key:user.__dict__[key] for key in ['user_name','real_name','gender','type_id']}
+        return responseJson(userDict)
+    else:
+        return responseError(1000)

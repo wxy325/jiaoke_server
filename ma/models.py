@@ -20,7 +20,8 @@ class UserSession(models.Model):
     def updateExpireDate(self):
         self.expire_date = datetime.datetime.now() + (datetime.date(2014,2,1) - datetime.date(2014,1,1))
     def checkSessionValid(self):
-        if datetime.datetime.now() > self.expire_date:
+        expireDate = datetime.datetime.combine(self.expire_date.date(),self.expire_date.time())
+        if datetime.datetime.now() > expireDate:
             return False
         else:
             return True
