@@ -4,9 +4,7 @@ from ma.beans.Error import Error
 from ma.models import UserEntity
 from ma.models import UserSession
 from django.views.decorators.csrf import csrf_exempt, csrf_protect
-from utility import responseError
-from utility import responseJson
-from utility import responseSuccess
+from utility import *
 import random
 
 
@@ -98,18 +96,42 @@ def userLogout(request):
 def userGetInfo(request):
     if request.method == 'POST':
         try:
-            sessionId = request.POST['session_id']
+            user = getUserFromRequest(request)
+        except UserSession.DoesNotExist, UserSession.SessionExpireException:
+            return responseError(1005)
         except KeyError:
             return responseError(1001)
 
-        try:
-            session = UserSession.objects.get(id = sessionId)
-            if not session.checkSessionValid():
-                return responseError(1005)
-        except UserSession.DoesNotExist:
-            return responseError(1005)
-        user = session.user
+
         userDict = {key:user.__dict__[key] for key in ['user_name','real_name','gender','type_id']}
         return responseJson(userDict)
+    else:
+        return responseError(1000)
+
+@csrf_exempt
+def userUpdateInfo(request):
+    if request.method == 'POST':
+        try:
+            user = getUserFromRequest(request)
+        except UserSession.DoesNotExist, UserSession.SessionExpireException:
+            return responseError(1005)
+        except KeyError:
+            return responseError(1001)
+
+
+        try:
+            realName = request.POST['real_name']
+            user.real_name = realName
+        except KeyError:
+            pass
+
+        try:
+            gender = request.POST['gender']
+            user.gender = gender
+        except KeyError:
+            pass
+        
+        user.save()
+        return responseSuccess()
     else:
         return responseError(1000)
