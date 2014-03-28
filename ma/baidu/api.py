@@ -33,12 +33,9 @@ def getDistanceWithLocation(locationFrom, locationTo, locationPass=()):
     response = urllib2.urlopen(full_url)
     data = response.read()
 
-
-    jsonDict = json.loads(data)
-
-
     try:
+        jsonDict = json.loads(data)
         routes = jsonDict['result']['routes'][0]['distance']
-    except IndexError:
+    except (IndexError,ValueError, KeyError):
         routes = 99999999999999
     return routes
