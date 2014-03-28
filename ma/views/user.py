@@ -1,9 +1,6 @@
-from django.shortcuts import render
-from django.http import HttpResponse
-from ma.beans.Error import Error
+__author__ = 'wxy325'
 from ma.models import UserEntity
-from ma.models import UserSession
-from django.views.decorators.csrf import csrf_exempt, csrf_protect
+from django.views.decorators.csrf import csrf_exempt
 from utility import *
 import random
 
@@ -130,7 +127,7 @@ def userUpdateInfo(request):
             user.gender = gender
         except KeyError:
             pass
-        
+
         user.save()
         return responseSuccess()
     else:

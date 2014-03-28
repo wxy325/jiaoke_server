@@ -12,6 +12,12 @@ class UserEntity(models.Model):
     gender = models.IntegerField()
     type_id = models.IntegerField()     #0driver 1customer
 
+    class ShouldBeCustomerException(Exception):
+        pass
+    class ShouldBeDriverException(Exception):
+        pass
+
+
 
 class UserSession(models.Model):
     #session_id = models.CharField(max_length=30)

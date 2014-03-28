@@ -2,6 +2,7 @@ from django.http import HttpResponse
 import json
 from ma.beans.Error import Error
 from ma.models import UserSession
+from ma.models import UserEntity
 
 
 def responseError(errorCode):
@@ -21,3 +22,20 @@ def getUserFromRequest(request):
     if not session.checkSessionValid():
         raise UserSession.SessionExpireException
     return session.user
+
+
+def getCustomerFromRequest(request):
+    user = getUserFromRequest(request)
+    if user.type_id == 0:
+        #driver
+        raise UserEntity.ShouldBeCustomerException
+    else:
+        return user.customerinfo_set.get_or_create()[0]
+
+def getDriverFromRequest(request):
+    user = getUserFromRequest(request)
+    if user.type_id == 1:
+        #customer
+        raise UserEntity.ShouldBeDriverException
+    else:
+        return user.driverinfo_set.get_or_create()[0]
