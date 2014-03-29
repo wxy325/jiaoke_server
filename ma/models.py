@@ -1,3 +1,4 @@
+#coding=utf-8
 from django.db import models
 import datetime
 
@@ -44,15 +45,34 @@ class DriverLocationInfo(models.Model):
     latitude = models.FloatField()
     update_time = models.DateTimeField()
 
+    def toDict(self):
+        return {'longitude':self.longitude,
+                'latitude':self.latitude,
+                'update_time':self.update_time}
+
 class DriverInfo(models.Model):
     user = models.ForeignKey(UserEntity)
     car_number = models.CharField(max_length=10)
-    state = models.IntegerField()   #0YES NO pingche
+    state = models.IntegerField(default=0)   #0NO 1打车 2拼车
     location_info = models.ForeignKey(DriverLocationInfo)
+
+    def toDict(self):
+        dict = {'driver_id':self.id,
+                'car_number':self.car_number,
+                'state':self.state,
+                #'location_info':self.location_info.toDict(),
+                'real_name':self.user.real_name}
+        try:
+            dict['location_info'] = self.location_info.toDict()
+        except DriverLocationInfo.DoesNotExist:
+            pass
+        return dict
 
 class CustomerInfo(models.Model):
     user = models.ForeignKey(UserEntity)
 
+    def toDict(self):
+        return {'real_name':self.user.real_name,}
 
 #Order
 class Order(models.Model):
@@ -60,8 +80,17 @@ class Order(models.Model):
     customer = models.ForeignKey(CustomerInfo)
     number_of_people = models.IntegerField()
     create_date = models.DateTimeField()
-    state = models.IntegerField()       #0weiJie 1yiJie 2yiSongDa
+    state = models.IntegerField()       #0新订单 1未接 2已接 3已送达
 
     destination_longitude = models.FloatField()
     destination_latitude = models.FloatField()
 
+    def toDict(self):
+        dict = {key:self.__dict__[key] for key in ['number_of_people',
+                                                   'create_date',
+                                                   'state',
+                                                   'destination_longitude',
+                                                   'destination_latitude']}
+        dict['driver'] = self.driver.toDict()
+        dict['customer'] = self.customer.toDict()
+        return dict

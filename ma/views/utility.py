@@ -3,13 +3,31 @@ import json
 from ma.beans.Error import Error
 from ma.models import UserSession
 from ma.models import UserEntity
+from datetime import date
+from datetime import datetime
 
+
+class CJsonEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, datetime):
+            return obj.strftime('%Y-%m-%d %H:%M:%S')
+        elif isinstance(obj, date):
+            return obj.strftime('%Y-%m-%d')
+        else:
+            return json.JSONEncoder.default(self, obj)
 
 def responseError(errorCode):
-    return HttpResponse(json.dumps(Error.errorWithCode(errorCode).__dict__,ensure_ascii=False))
+    return responseJson(Error.errorWithCode(errorCode).__dict__)
 
-def responseJson(dict):
-    return HttpResponse(json.dumps(dict,ensure_ascii=False))
+def responseJson(j):
+    h = HttpResponse(json.dumps(j,ensure_ascii=False, cls=CJsonEncoder))
+    contentType = h['Content-Type'];
+    contentType = contentType.replace('text/html','text/javascript')
+    h['Content-Type']=contentType
+    return h
+
+
+
 
 def responseSuccess():
     return responseJson({"result":True})
@@ -21,6 +39,8 @@ def getUserFromRequest(request):
     session = UserSession.objects.get(id = sessionId)
     if not session.checkSessionValid():
         raise UserSession.SessionExpireException
+    else:
+        session.updateExpireDate()
     return session.user
 
 

@@ -1,4 +1,5 @@
 #coding=utf-8
+__author__ = 'wxy325'
 
 class Error:
     def __init__(self,error_code, error_desc):
@@ -14,6 +15,10 @@ class Error:
         1005:'session不存在或过期，请重新登录',
         1006:'请使用司机登录',
         1007:'请使用乘客登录',
+        1008:'该司机暂无位置信息',
+        1009:'查询结果为空',
+        1010:'订单不存在',
+        1011:'权限不足',
 
 
     }
