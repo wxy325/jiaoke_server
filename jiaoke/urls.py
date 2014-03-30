@@ -3,6 +3,7 @@ from django.conf.urls import patterns, include, url
 from django.contrib import admin
 import ma.views.user
 import ma.views.driver
+import ma.views.customer
 
 
 admin.autodiscover()
@@ -24,4 +25,7 @@ urlpatterns = patterns('',
     url(r'^driver/get_order$',ma.views.driver.driverGetOrder),
     url(r'^driver/update_order$',ma.views.driver.driverUpdateOrder),
 
+    #customer
+    url(r'^customer/get_near_driver$',ma.views.customer.customerGetNearDriver),
+    url(r'^customer/create_order$',ma.views.customer.customerCreateOrder),
 )

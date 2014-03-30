@@ -78,19 +78,28 @@ class CustomerInfo(models.Model):
 class Order(models.Model):
     driver = models.ForeignKey(DriverInfo)
     customer = models.ForeignKey(CustomerInfo)
-    number_of_people = models.IntegerField()
+    male_number = models.IntegerField()
+    female_number = models.IntegerField()
     create_date = models.DateTimeField()
     state = models.IntegerField()       #0新订单 1未接 2已接 3已送达
+    type = models.IntegerField()        #1打车 2拼车
 
+
+    from_longitude = models.FloatField()
+    from_latitude = models.FloatField()
     destination_longitude = models.FloatField()
     destination_latitude = models.FloatField()
 
     def toDict(self):
-        dict = {key:self.__dict__[key] for key in ['number_of_people',
+        dict = {key:self.__dict__[key] for key in ['male_number',
+                                                   'female_number',
                                                    'create_date',
                                                    'state',
+                                                   'type',
+                                                   'from_longitude',
+                                                   'from_latitude',
                                                    'destination_longitude',
-                                                   'destination_latitude']}
+                                                   'destination_latitude',]}
         dict['driver'] = self.driver.toDict()
         dict['customer'] = self.customer.toDict()
         return dict

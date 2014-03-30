@@ -1,7 +1,7 @@
 #coding=utf-8
 __author__ = 'wxy325'
 
-from ma.models import UserEntity
+from ma.models import *
 from django.views.decorators.csrf import csrf_exempt
 from utility import *
 from ma.baidu.location import Location
@@ -17,10 +17,10 @@ def customerSearchDriver(request):
 
         #获取参数
         try:
-            latitude = request.POST['latitude']
-            longitude = request.POST['longitude']
-            des_latitude = request.POST['des_latitude']
-            des_longitude = request.POST['des_longitude']
+            latitude = float(request.POST['latitude'])
+            longitude = float(request.POST['longitude'])
+            des_latitude = float(request.POST['des_latitude'])
+            des_longitude = float(request.POST['des_longitude'])
             reject_driver_ids = request.POST['reject_driver_ids']
         except KeyError:
             return responseError(1001)
@@ -40,13 +40,16 @@ def customerSearchDriver(request):
 
 
 
+        driver = DriverInfo.objects.get(id=1)
+        return responseJson(driver.toDict())
+
     else:
         return responseError(1000)
 
 
 
 @csrf_exempt
-def customerSubmitOrder(request):
+def customerCreateOrder(request):
     if request.method == 'POST':
         #获取customer
         try:
@@ -58,6 +61,40 @@ def customerSubmitOrder(request):
         except UserEntity.ShouldBeDriverException:
             return responseError(1007)
 
+        try:
+            driverId = int(request.POST['driver_id'])
+            type = int(request.POST['order_type'])
+            male_number = int(request.POST['male_number'])
+            female_number = int(request.POST['female_number'])
+            destination_longitude = float(request.POST['destination_longitude'])
+            destination_latitude = float(request.POST['destination_latitude'])
+            from_latitude = float(request.POST['from_latitude'])
+            from_longitude = float(request.POST['from_longitude'])
+        except KeyError:
+            return responseError(1001)
+
+        try:
+            driver = DriverInfo.objects.get(id = driverId)
+        except DriverInfo.DoesNotExist:
+            return responseError(1012)
+
+        o = Order()
+        o.customer = customer
+        o.driver = driver
+        o.type = type
+        o.male_number = male_number
+        o.female_number = female_number
+        o.state = 0
+        o.create_date = datetime.now()
+
+        o.destination_latitude = destination_latitude
+        o.destination_longitude = destination_longitude
+        o.from_latitude = from_latitude
+        o.from_longitude = from_longitude
+
+        o.save()
+
+        return responseJson(o.toDict())
 
     else:
         return responseError(1000)
@@ -75,7 +112,7 @@ def customerGetOrder(request):
             return responseError(1001)
         except UserEntity.ShouldBeDriverException:
             return responseError(1007)
-
+#未写
 
     else:
         return responseError(1000)
@@ -84,6 +121,7 @@ def customerGetOrder(request):
 @csrf_exempt
 def customerGetNearDriver(request):
     if request.method == 'POST':
+        '''
         #获取customer
         try:
             customer = getCustomerFromRequest(request)
@@ -93,7 +131,20 @@ def customerGetNearDriver(request):
             return responseError(1001)
         except UserEntity.ShouldBeDriverException:
             return responseError(1007)
+        '''
 
+        try:
+            latitude = float(request.POST['latitude'])
+            longitude = float(request.POST['longitude'])
+            delta_latitude = float(request.POST['delta_latitude'])
+            delta_longitude = float(request.POST['delta_longitude'])
+        except KeyError:
+            return responseError(1001)
+
+        driverList = getNearDriver(latitude, longitude, delta_latitude, delta_longitude)
+
+        rJson = [d.toDict() for d in driverList]
+        return responseJson(rJson)
 
     else:
         return responseError(1000)
