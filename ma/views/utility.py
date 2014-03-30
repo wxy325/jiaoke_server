@@ -3,8 +3,12 @@ import json
 from ma.beans.Error import Error
 from ma.models import UserSession
 from ma.models import UserEntity
+from ma.models import DriverLocationInfo
+from ma.models import DriverInfo
+
 from datetime import date
 from datetime import datetime
+from datetime import timedelta
 
 
 class CJsonEncoder(json.JSONEncoder):
@@ -59,3 +63,28 @@ def getDriverFromRequest(request):
         raise UserEntity.ShouldBeDriverException
     else:
         return user.driverinfo_set.get_or_create()[0]
+
+
+def getNearDriver(latitude,longitude, deltaLa, deltaLo):
+
+    locationInfoList = DriverLocationInfo.objects.filter(longitude__range=(latitude - deltaLa,latitude + deltaLa),
+                                                         latitude__range=(longitude - deltaLo,longitude + deltaLo))
+
+    #timeFrom = datetime.now() - timedelta(minutes=30)
+    #locationInfoList = DriverLocationInfo.objects.filter(longitude__range=(latitude - deltaLa,latitude + deltaLa),
+    #                                                     latitude__range=(longitude - deltaLo,longitude + deltaLo),
+    #                                                     update_time__gte=timeFrom)
+
+    driverList = []
+    for lo in locationInfoList:
+        try:
+            driver = lo.driverinfo_set.get()
+            driverList.append(driver)
+        except DriverInfo.DoesNotExist:
+            pass
+    return driverList
+
+def getNearDriverCircle(latitude, longitude, radius):
+    driverList = getNearDriver(latitude, longitude, radius, radius)
+    return [driver for driver in driverList
+            if ((driver.location_info.latitude - latitude)**2 + (driver.location_info.longitude - longitude)**2) <= radius ** 2]
