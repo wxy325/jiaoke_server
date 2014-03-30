@@ -1,7 +1,6 @@
 #coding=utf-8
 __author__ = 'wxy325'
 
-import datetime
 from ma.models import UserEntity
 from django.views.decorators.csrf import csrf_exempt
 from ma.models import DriverLocationInfo
@@ -39,10 +38,11 @@ def driverUpdateLocation(request):
 
         location.latitude = float(latitude)
         location.longitude = float(longitude)
-        location.update_time = datetime.datetime.now()
+
+        location.update_time = datetime.now()
         location.save()
 
-        responseSuccess()
+        return responseSuccess()
     else:
         return responseError(1000)
 

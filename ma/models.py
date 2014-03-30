@@ -10,7 +10,7 @@ class UserEntity(models.Model):
     user_name = models.CharField(max_length=11)
     password = models.CharField(max_length=30)
     real_name = models.CharField(max_length=30)
-    gender = models.IntegerField()
+    gender = models.IntegerField()      #0male 1female
     type_id = models.IntegerField()     #0driver 1customer
 
     class ShouldBeCustomerException(Exception):
@@ -18,6 +18,12 @@ class UserEntity(models.Model):
     class ShouldBeDriverException(Exception):
         pass
 
+    def toDict(self):
+        dict = {key:self.__dict__[key] for key in ['user_name',
+                                                   'real_name',
+                                                   'gender',
+                                                   'type_id']}
+        return dict
 
 
 class UserSession(models.Model):

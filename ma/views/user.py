@@ -58,7 +58,11 @@ def userLogin(request):
                 session = UserSession(user=user)
                 session.updateExpireDate()
                 session.save()
-                return responseJson({"type_id":user.type_id, "session_id":session.id})
+
+                dict = user.toDict()
+                dict['session_id'] = session.id
+
+                return responseJson(dict)
 
             else:
                 return responseError(1002)
