@@ -78,7 +78,8 @@ class CustomerInfo(models.Model):
     user = models.ForeignKey(UserEntity)
 
     def toDict(self):
-        return {'real_name':self.user.real_name,}
+        return {'real_name':self.user.real_name,
+                'customer_id':self.id}
 
 #Order
 class Order(models.Model):
@@ -97,7 +98,8 @@ class Order(models.Model):
     destination_latitude = models.FloatField()
 
     def toDict(self):
-        dict = {key:self.__dict__[key] for key in ['male_number',
+        dict = {key:self.__dict__[key] for key in ['id',
+                                                   'male_number',
                                                    'female_number',
                                                    'create_date',
                                                    'state',
