@@ -28,4 +28,6 @@ urlpatterns = patterns('',
     #customer
     url(r'^customer/get_near_driver$',ma.views.customer.customerGetNearDriver),
     url(r'^customer/create_order$',ma.views.customer.customerCreateOrder),
+    url(r'^customer/search_driver$',ma.views.customer.customerSearchDriver),
+    url(r'^customer/get_order$',ma.views.customer.customerGetOrder),
 )
