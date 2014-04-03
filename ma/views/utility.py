@@ -67,8 +67,8 @@ def getDriverFromRequest(request):
 
 def getNearDriver(latitude,longitude, deltaLa, deltaLo):
 
-    locationInfoList = DriverLocationInfo.objects.filter(longitude__range=(latitude - deltaLa,latitude + deltaLa),
-                                                         latitude__range=(longitude - deltaLo,longitude + deltaLo))
+    locationInfoList = DriverLocationInfo.objects.filter(latitude__range=(latitude - deltaLa,latitude + deltaLa),
+                                                         longitude__range=(longitude - deltaLo,longitude + deltaLo))
 
     #timeFrom = datetime.now() - timedelta(minutes=30)
     #locationInfoList = DriverLocationInfo.objects.filter(longitude__range=(latitude - deltaLa,latitude + deltaLa),
@@ -88,3 +88,5 @@ def getNearDriverCircle(latitude, longitude, radius):
     driverList = getNearDriver(latitude, longitude, radius, radius)
     return [driver for driver in driverList
             if ((driver.location_info.latitude - latitude)**2 + (driver.location_info.longitude - longitude)**2) <= radius ** 2]
+
+

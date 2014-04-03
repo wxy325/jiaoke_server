@@ -62,6 +62,10 @@ class DriverInfo(models.Model):
     state = models.IntegerField(default=0)   #0NO 1打车 2拼车
     location_info = models.ForeignKey(DriverLocationInfo)
 
+    route_info = models.TextField();    #longitude,latitude|longitude,latitude
+
+
+
     def toDict(self):
         dict = {'driver_id':self.id,
                 'car_number':self.car_number,
