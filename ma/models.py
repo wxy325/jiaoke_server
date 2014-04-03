@@ -1,7 +1,8 @@
 #coding=utf-8
 from django.db import models
 import datetime
-
+from ma.baidu.api import getDistanceWithLocation
+from ma.baidu.location import Location
 
 # Create your models here.
 
@@ -9,7 +10,8 @@ import datetime
 class UserEntity(models.Model):
     user_name = models.CharField(max_length=11)
     password = models.CharField(max_length=30)
-    real_name = models.CharField(max_length=30)
+    real_name = models.CharField(max_length=30, )
+
     gender = models.IntegerField()      #0male 1female
     type_id = models.IntegerField()     #0driver 1customer
 
@@ -76,7 +78,76 @@ class DriverInfo(models.Model):
             dict['location_info'] = self.location_info.toDict()
         except DriverLocationInfo.DoesNotExist:
             pass
+        try:
+            dict['route_info'] = self.route_info
+        except:
+            pass
+
         return dict
+
+    def updateRoad(self):
+        #计算路线
+        driver = self
+        orderCount = driver.order_set.exclude(state=3).count()
+        if orderCount == 0:
+            route = []
+            pass
+        elif orderCount == 1:
+            dOrder = driver.order_set.exclude(state=3).get()
+            locationFrom = Location(latitude=dOrder.from_latitude, longitude=dOrder.from_longitude)
+            locationTo = Location(latitude=dOrder.destination_latitude, longitude=dOrder.destination_longitude)
+            route = [locationFrom, locationTo]
+            pass
+        elif orderCount == 2:
+
+            dOrderList = driver.order_set.exclude(state=3).exclude(state=0).all()
+
+            dOrder = driver.order_set.exclude(state=3).exclude(state=0).get()
+            locationFrom = Location(latitude=dOrder.from_latitude, longitude=dOrder.from_longitude)
+            locationTo = Location(latitude=dOrder.destination_latitude, longitude=dOrder.destination_longitude)
+
+            dOrder = dOrderList[1]
+            orderLocationFrom = Location(dOrder.from_latitude, dOrder.from_longitude)
+            orderLocationTo = Location(dOrder.destination_latitude, dOrder.destination_longitude)
+            driverLocation = Location(driver.location_info.latitude, driver.location_info.longitude)
+
+
+            if dOrder.state == 2:
+                distanceA = getDistanceWithLocation(driverLocation, locationTo, (locationFrom, orderLocationTo))
+                distanceB = getDistanceWithLocation(driverLocation,orderLocationTo, (locationFrom, locationTo))
+                distanceC = getDistanceWithLocation(driverLocation, locationTo, (orderLocationTo, locationFrom))
+                minDistance = min(distanceA, distanceB, distanceC)
+                if distanceA == minDistance:
+                    route = [locationFrom, orderLocationTo, locationTo]
+                elif distanceB == minDistance:
+                    route = [locationFrom, locationTo, orderLocationTo]
+                else:
+                    route = [orderLocationTo, locationFrom, locationTo]
+            else:
+
+
+                distanceA = getDistanceWithLocation(driverLocation, locationTo, (orderLocationFrom, locationFrom, orderLocationTo))
+                distanceB = getDistanceWithLocation(driverLocation, orderLocationTo, (orderLocationFrom, locationFrom, locationTo))
+                distanceC = getDistanceWithLocation(driverLocation, locationTo, (orderLocationFrom, orderLocationTo, locationFrom))
+
+                minDistance = min(distanceA, distanceB, distanceC)
+                if distanceA == minDistance:
+                    route = [orderLocationFrom, locationFrom, orderLocationTo, locationTo]
+                elif distanceB == minDistance:
+                    route = [orderLocationFrom, locationFrom, locationTo, orderLocationTo]
+                else:
+                    route = [orderLocationFrom, orderLocationTo, locationFrom, locationTo]
+
+        fFirst = True
+        routeStr = ''
+        for lo in route:
+            if fFirst:
+                fFirst = False
+            else:
+                routeStr = routeStr + '|'
+            routeStr = routeStr + str(lo.latitude) + ',' + str(lo.longitude)
+        self.route_info = routeStr
+
 
 class CustomerInfo(models.Model):
     user = models.ForeignKey(UserEntity)

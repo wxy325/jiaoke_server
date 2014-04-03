@@ -24,6 +24,7 @@ urlpatterns = patterns('',
     url(r'^driver/get_location$',ma.views.driver.driverGetLocation),
     url(r'^driver/get_order$',ma.views.driver.driverGetOrder),
     url(r'^driver/update_order$',ma.views.driver.driverUpdateOrder),
+    url(r'^driver/get_info$',ma.views.driver.driverGetInfo),
 
     #customer
     url(r'^customer/get_near_driver$',ma.views.customer.customerGetNearDriver),

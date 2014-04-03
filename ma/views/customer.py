@@ -25,11 +25,13 @@ def customerSearchDriver(request):
         except KeyError:
             return responseError(1001)
 
-            reject_driver_ids = []
+        reject_driver_ids = []
         try:
-            reject_driver_ids = request.POST['reject_driver_ids']
-            str_id_list = reject_driver_ids.split('|')
-            reject_driver_ids = [int(i) for i in str_id_list]
+
+            reject_driver_ids_str = request.POST['reject_driver_ids']
+            if len(reject_driver_ids_str):
+                str_id_list = reject_driver_ids_str.split('|')
+                reject_driver_ids = [int(i) for i in str_id_list]
         except (KeyError, SyntaxError, ValueError):
 
             pass
@@ -160,6 +162,11 @@ def customerSearchDriver(request):
                     if d.order_set.exclude(state=3).exclude(state=0).count() == 1:
                         #情况I II
                         dOrder = d.order_set.exclude(state=3).exclude(state=0).get()
+
+                        orderLocationFrom = Location(dOrder.from_latitude, dOrder.from_longitude)
+                        orderLocationTo = Location(dOrder.destination_latitude, dOrder.destination_longitude)
+                        driverLocation = Location(d.location_info.latitude, d.location_info.longitude)
+
                         if dOrder.state==2:
                             #情况I
                             distanceA = getDistanceWithLocation(driverLocation, locationTo, (locationFrom, orderLocationTo))
@@ -222,14 +229,7 @@ def customerSearchDriver(request):
                     #(4)未找到
                     driver = None
 
-
-
-
-
-
 ############################
-
-
 
         #driver = DriverInfo.objects.get(id=1)
         if driver is None:
@@ -273,10 +273,13 @@ def customerCreateOrder(request):
         except KeyError:
             return responseError(1001)
 
+        locationFrom = Location(latitude=from_latitude, longitude=from_longitude)
+        locationTo = Location(latitude=destination_latitude, longitude=destination_longitude)
         try:
             driver = DriverInfo.objects.get(id = driverId)
         except DriverInfo.DoesNotExist:
             return responseError(1012)
+
 
         o = Order()
         o.customer = customer
@@ -293,6 +296,9 @@ def customerCreateOrder(request):
         o.from_longitude = from_longitude
 
         o.save()
+
+        driver.updateRoad()
+        driver.save()
 
         return responseJson(o.toDict())
 

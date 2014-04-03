@@ -49,6 +49,23 @@ def driverUpdateLocation(request):
 
 
 @csrf_exempt
+def driverGetInfo(request):
+    if request.method == 'POST':
+        #获取driver
+        try:
+            driver = getDriverFromRequest(request)
+        except UserSession.DoesNotExist, UserSession.SessionExpireException:
+            return responseError(1005)
+        except KeyError:
+            return responseError(1001)
+        except UserEntity.ShouldBeDriverException:
+            return responseError(1006)
+
+        return responseJson(driver.toDict())
+    else:
+        return responseError(1000)
+
+@csrf_exempt
 def driverGetLocation(request):
     if request.method == 'POST':
         #获取driver
@@ -137,6 +154,8 @@ def driverUpdateOrder(request):
         else:
             order.state = orderState
             order.save()
+            order.driver.updateRoad()
+            order.driver.save()
             return responseSuccess()
     else:
         return responseError(1000)

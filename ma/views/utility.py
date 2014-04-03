@@ -24,7 +24,7 @@ def responseError(errorCode):
     return responseJson(Error.errorWithCode(errorCode).__dict__)
 
 def responseJson(j):
-    h = HttpResponse(json.dumps(j,ensure_ascii=False, cls=CJsonEncoder))
+    h = HttpResponse(json.dumps(j,ensure_ascii=True, cls=CJsonEncoder))
     contentType = h['Content-Type'];
     contentType = contentType.replace('text/html','text/javascript')
     h['Content-Type']=contentType
