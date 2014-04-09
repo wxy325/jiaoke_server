@@ -39,3 +39,29 @@ def getDistanceWithLocation(locationFrom, locationTo, locationPass=()):
     except (IndexError,ValueError, KeyError):
         routes = 99999999999999
     return routes
+
+
+def getNameWithLocation(location):
+    param = {}
+    # param['origin'] = locationFrom.__unicode__()
+    # param['destination'] = locationTo.__unicode__()
+    # param['mode'] = 'driving'
+    # param['origin_region'] = '上海'
+    # param['destination_region'] = '上海'
+    param['output'] = 'json'
+    param['pois'] = 0
+    param['ak'] = 'jeszhojTR7sZSeF0RHwitYiN'
+    param['location'] = location.__unicode__()
+
+    url_values = urllib.urlencode(param)
+
+    url = 'http://api.map.baidu.com/geocoder/v2/'
+    full_url = url + '?' + url_values
+    response = urllib2.urlopen(full_url)
+    data = response.read()
+
+    try:
+        jsonDict = json.loads(data)
+        return jsonDict['result']['formatted_address']
+    except (IndexError,ValueError, KeyError):
+        pass

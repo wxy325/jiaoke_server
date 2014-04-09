@@ -66,6 +66,7 @@ class DriverInfo(models.Model):
 
     route_info = models.TextField();    #longitude,latitude|longitude,latitude
 
+    company = models.CharField(max_length=20)
 
 
     def toDict(self):
@@ -73,7 +74,11 @@ class DriverInfo(models.Model):
                 'car_number':self.car_number,
                 'state':self.state,
                 #'location_info':self.location_info.toDict(),
-                'real_name':self.user.real_name}
+                'real_name':self.user.real_name,
+                'company':self.company,
+                'tel':self.user.user_name,
+                }
+
         try:
             dict['location_info'] = self.location_info.toDict()
         except DriverLocationInfo.DoesNotExist:
@@ -94,25 +99,29 @@ class DriverInfo(models.Model):
             pass
         elif orderCount == 1:
             dOrder = driver.order_set.exclude(state=3).get()
+
             locationFrom = Location(latitude=dOrder.from_latitude, longitude=dOrder.from_longitude)
             locationTo = Location(latitude=dOrder.destination_latitude, longitude=dOrder.destination_longitude)
-            route = [locationFrom, locationTo]
+            if dOrder.state == 2:
+                route = [locationTo]
+            else:
+                route = [locationFrom, locationTo]
             pass
         elif orderCount == 2:
 
-            dOrderList = driver.order_set.exclude(state=3).exclude(state=0).all()
+            dOrderList = driver.order_set.exclude(state=3).all()
 
-            dOrder = driver.order_set.exclude(state=3).exclude(state=0).get()
-            locationFrom = Location(latitude=dOrder.from_latitude, longitude=dOrder.from_longitude)
-            locationTo = Location(latitude=dOrder.destination_latitude, longitude=dOrder.destination_longitude)
+            dOrder1 = dOrderList[0]
+            locationFrom = Location(latitude=dOrder1.from_latitude, longitude=dOrder1.from_longitude)
+            locationTo = Location(latitude=dOrder1.destination_latitude, longitude=dOrder1.destination_longitude)
 
-            dOrder = dOrderList[1]
-            orderLocationFrom = Location(dOrder.from_latitude, dOrder.from_longitude)
-            orderLocationTo = Location(dOrder.destination_latitude, dOrder.destination_longitude)
+            dOrder2 = dOrderList[1]
+            orderLocationFrom = Location(dOrder2.from_latitude, dOrder2.from_longitude)
+            orderLocationTo = Location(dOrder2.destination_latitude, dOrder2.destination_longitude)
             driverLocation = Location(driver.location_info.latitude, driver.location_info.longitude)
 
 
-            if dOrder.state == 2:
+            if dOrder2.state == 2:
                 distanceA = getDistanceWithLocation(driverLocation, locationTo, (locationFrom, orderLocationTo))
                 distanceB = getDistanceWithLocation(driverLocation,orderLocationTo, (locationFrom, locationTo))
                 distanceC = getDistanceWithLocation(driverLocation, locationTo, (orderLocationTo, locationFrom))
@@ -154,7 +163,8 @@ class CustomerInfo(models.Model):
 
     def toDict(self):
         return {'real_name':self.user.real_name,
-                'customer_id':self.id}
+                'customer_id':self.id,
+                'tel':self.user.user_name}
 
 #Order
 class Order(models.Model):
@@ -169,8 +179,10 @@ class Order(models.Model):
 
     from_longitude = models.FloatField()
     from_latitude = models.FloatField()
+    from_desc = models.CharField(max_length=30)
     destination_longitude = models.FloatField()
     destination_latitude = models.FloatField()
+    to_desc = models.CharField(max_length=30)
 
     def toDict(self):
         dict = {key:self.__dict__[key] for key in ['id',
@@ -182,7 +194,9 @@ class Order(models.Model):
                                                    'from_longitude',
                                                    'from_latitude',
                                                    'destination_longitude',
-                                                   'destination_latitude',]}
+                                                   'destination_latitude',
+                                                   'from_desc',
+                                                   'to_desc',]}
         dict['driver'] = self.driver.toDict()
         dict['customer'] = self.customer.toDict()
         return dict

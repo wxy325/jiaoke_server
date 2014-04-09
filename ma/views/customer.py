@@ -6,6 +6,7 @@ from django.views.decorators.csrf import csrf_exempt
 from utility import *
 from ma.baidu.location import Location
 from ma.baidu.api import getDistanceWithLocation
+from ma.baidu.api import getNameWithLocation
 import random
 
 
@@ -14,6 +15,9 @@ def customerSearchDriver(request):
     #获取经纬度参数
 
     if request.method == 'POST':
+
+        d = DriverInfo.objects.get(id=3)
+        return responseJson(d.toDict())
 
         #获取参数
         try:
@@ -24,6 +28,9 @@ def customerSearchDriver(request):
             des_longitude = float(request.POST['des_longitude'])
         except KeyError:
             return responseError(1001)
+
+
+
 
         reject_driver_ids = []
         try:
@@ -270,11 +277,13 @@ def customerCreateOrder(request):
             destination_latitude = float(request.POST['des_latitude'])
             from_latitude = float(request.POST['from_latitude'])
             from_longitude = float(request.POST['from_longitude'])
+            to_desc = request.POST['to_desc']
         except KeyError:
             return responseError(1001)
 
         locationFrom = Location(latitude=from_latitude, longitude=from_longitude)
         locationTo = Location(latitude=destination_latitude, longitude=destination_longitude)
+        from_desc = getNameWithLocation(locationFrom)
         try:
             driver = DriverInfo.objects.get(id = driverId)
         except DriverInfo.DoesNotExist:
@@ -289,6 +298,8 @@ def customerCreateOrder(request):
         o.female_number = female_number
         o.state = 0
         o.create_date = datetime.now()
+        o.from_desc = from_desc
+        o.to_desc = to_desc
 
         o.destination_latitude = destination_latitude
         o.destination_longitude = destination_longitude
@@ -305,6 +316,29 @@ def customerCreateOrder(request):
     else:
         return responseError(1000)
 
+
+@csrf_exempt
+def customerGetAllOrder(request):
+    if request.method == 'POST':
+        #获取customer
+        try:
+            customer = getCustomerFromRequest(request)
+        except UserSession.DoesNotExist, UserSession.SessionExpireException:
+            return responseError(1005)
+        except KeyError:
+            return responseError(1001)
+        except UserEntity.ShouldBeDriverException:
+            return responseError(1007)
+
+        newArray = customer.order_set.exclude(state=3)
+        historyArray = customer.order_set.filter(state=3)
+        newDictArray = [o.toDict() for o in newArray]
+        historyDictArray = [o.toDict() for o in historyArray]
+        d = {'new':newDictArray, 'history':historyDictArray}
+        return responseJson(d)
+
+    else:
+        return responseError(1000)
 
 @csrf_exempt
 def customerGetOrder(request):
